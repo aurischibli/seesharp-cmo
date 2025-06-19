@@ -3,313 +3,339 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SeeSharp Marketing Timeline - Q2-Q3 2025</title>
+    <title>Project Timeline Visualizer</title>
     
-    <!-- Tailwind CSS for styling -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* Use the Inter font family defined in the head */
+        /* Custom styles for a clean look */
         body {
             font-family: 'Inter', sans-serif;
         }
+        /* Style for smooth transitions on filter */
+        .task-card {
+            /* Transitions are now on display/visibility for smoother appearance if needed later */
+            transition: opacity 0.3s ease-in-out, max-height 0.3s ease-in-out;
+        }
+        /* Ensure tooltips don't get cut off on small screens */
+        .group:hover .tooltip {
+            transform: translate(0, -50%);
+            top: 50%;
+        }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-slate-100 text-slate-800">
 
-    <div id="app-root"></div>
+    <div class="container mx-auto p-4 md:p-8">
+        
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Project Timeline</h1>
+            <p class="text-slate-600 mt-2">An interactive overview of project deliverables and tasks.</p>
+        </header>
+
+        <!-- Assignee Filters -->
+        <div id="filters" class="flex flex-wrap justify-center gap-2 mb-10 p-2 bg-slate-200/60 rounded-lg">
+            <!-- Filter buttons will be dynamically inserted here -->
+        </div>
+
+        <!-- Main Timeline Container -->
+        <main id="timeline" class="relative max-w-3xl mx-auto">
+             <!-- A vertical line for the timeline aesthetic -->
+            <div class="absolute left-4 md:left-5 top-2 bottom-0 w-0.5 bg-slate-300" aria-hidden="true"></div>
+            <!-- Timeline content will be dynamically inserted here -->
+            <div id="loading-indicator" class="text-center p-8">
+                <p class="text-slate-600">Loading project data...</p>
+            </div>
+        </main>
+
+    </div>
 
     <script>
-        // --- Data extracted and synthesized from the provided documents ---
-        const timelineData = {
-          june: {
-            month: "June 2025",
-            theme: "Foundation & Frameworks",
-            tasks: [
-              {
-                category: "Community",
-                color: "text-sky-500",
-                items: [
-                  { text: "Platform Set up: creation of 10 anchor posts", completed: false },
-                  { text: "Structure spaces and mechanics for the community", completed: false },
-                  { text: "Finetune positioning and communication for Community", completed: false },
-                  { text: "Paul to create community/channel policy (e.g., no advertising)", completed: false },
-                  { text: "Define rules for removing someone from the community", completed: false },
-                  { text: "Paul to assess Circle functionality for hosting video and gating content", completed: false },
-                ],
-              },
-              {
-                category: "MLJ / YouTube",
-                color: "text-red-500",
-                items: [
-                  { text: "Weekly MLJ recorded", completed: true },
-                  { text: "Handover doc from Auri to team (JJ, Timo, Mike)", completed: false },
-                  { text: "Create a library of thumbnails", completed: false },
-                  { text: "Paul to assess and define KPIs for YouTube channel", completed: false },
-                ],
-              },
-              {
-                category: "Content & Campaigns",
-                color: "text-green-500",
-                items: [
-                  { text: "Finalise framework for 'eyeball' campaign", completed: false },
-                  { text: "Finalise framework for free 'Lead Gen Report' campaign", completed: false },
-                  { text: "Finalise strategy and theme for optimising YouTube content", completed: false },
-                  { text: "Create promotional material for 'Send us your report' campaign", completed: false },
-                  { text: "Design graphics of confusing reports vs. clean dashboards", completed: false },
-                ],
-              },
-            ],
-          },
-          july: {
-            month: "July 2025",
-            theme: "Soft Launch & Optimization",
-            tasks: [
-              {
-                category: "Community",
-                color: "text-sky-500",
-                items: [
-                  { text: "Soft Launch of Community", completed: false },
-                  { text: "Invite past workshop attendees, past clients, and warm leads", completed: false },
-                  { text: "Begin engagement with community members", completed: false },
-                  { text: "Email existing database and offer them to join the community", completed: false },
-                  { text: "EDM to convert past workshop attendees", completed: false },
-                  { text: "Create slide to promote workshop to new attendees", completed: false },
-                  { text: "Setup full EDM automation sequence to convert database to Circle", completed: false },
-                ],
-              },
-              {
-                category: "MLJ / YouTube",
-                color: "text-red-500",
-                items: [
-                  { text: "Weekly MLJ recorded", completed: false },
-                  { text: "Offer community opportunity to be featured in MLJ", completed: false },
-                ],
-              },
-              {
-                category: "Content & Campaigns",
-                color: "text-green-500",
-                items: [
-                  { text: "Edit and optimise existing YouTube content (thumbnails, tags, etc.)", completed: false },
-                  { text: "Start boosting soundbites from LIGHTFM and MLJ clips on socials", completed: false },
-                  { text: "Develop dashboard for monitoring ROI from boosted social posts", completed: false },
-                  { text: "Write video script for Alex (technical jargon, confusing reports)", completed: false },
-                ],
-              },
-            ],
-          },
-          august: {
-            month: "August 2025",
-            theme: "Full Launch & Content Creation",
-            tasks: [
-              {
-                category: "Community",
-                color: "text-sky-500",
-                items: [
-                  { text: "Full launch of Community by start of August", completed: false },
-                  { text: "Promote community to wider audience using lead magnets", completed: false },
-                  { text: "Weekly posts & one live AMA per fortnight by SeeSharp team", completed: false },
-                  { text: "Start seeding workshop offers within the community", completed: false },
-                  { text: "Paul to create KPI for Circle community success", completed: false },
-                  { text: "Paul to create DM template for suitable prospects", completed: false },
-                  { text: "Paul to outline value propositions (e.g., weekly brandscript review)", completed: false },
-                ],
-              },
-              {
-                category: "MLJ / YouTube",
-                color: "text-red-500",
-                items: [
-                  { text: "Weekly MLJ recorded", completed: false },
-                  { text: "Offer community opportunity to be featured in MLJ", completed: false },
-                ],
-              },
-              {
-                category: "Content & Campaigns",
-                color: "text-green-500",
-                items: [
-                  { text: "Develop and Record 30-minute 'BrandScript Masterclass' video", completed: false },
-                  { text: "Finalise framework for StoryBrand Campaign", completed: false },
-                  { text: "Create landing page for masterclass opt-in (links to free Circle tier)", completed: false },
-                  { text: "Continued creation of soundbites and feature clips for socials", completed: false },
-                  { text: "Run 'Lead Gen Report' campaign", completed: false },
-                ],
-              },
-            ],
-          },
-          september: {
-            month: "September 2025",
-            theme: "Campaign Execution & Growth",
-            tasks: [
-              {
-                category: "Community",
-                color: "text-sky-500",
-                items: [
-                  { text: "Ongoing engagement with online community", completed: false },
-                  { text: "Start to focus on referral incentives", completed: false },
-                  { text: "Increase DIY conversions (upsell workshop)", completed: false },
-                ],
-              },
-              {
-                category: "MLJ / YouTube",
-                color: "text-red-500",
-                items: [
-                  { text: "Weekly MLJ recorded", completed: false },
-                  { text: "Offer community opportunity to be featured in MLJ", completed: false },
-                ],
-              },
-              {
-                category: "Content & Campaigns",
-                color: "text-green-500",
-                items: [
-                  { text: "Launch StoryBrand Campaign", completed: false },
-                  { text: "Create EDM message flow for StoryBrand (Thanks, Try AI, Join Community)", completed: false },
-                  { text: "Continued creation of soundbites for socials", completed: false },
-                  { text: "Finalise CMO management dashboard mechanism", completed: false },
-                ],
-              },
-               {
-                category: "Bottom of Funnel",
-                color: "text-purple-500",
-                items: [
-                  { text: "Launch the main website", completed: false },
-                  { text: "Launch advertising campaigns (MLJ boosts, Google Ads, Free report review)", completed: false },
-                ],
-              },
-            ],
-          },
-        };
+        document.addEventListener('DOMContentLoaded', () => {
 
-        // --- SVG Icons (replaces lucide-react library) ---
-        const icons = {
-            CheckSquare: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-sky-500"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>`,
-            Square: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>`,
-            Users: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>`,
-            Mic: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line></svg>`,
-            FileText: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`,
-            Target: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>`,
-            ChevronsRight: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>`,
-            Calendar: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`,
-            Flag: `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>`
-        };
-        
-        function getIcon(category) {
-            if (category === 'Community') return icons.Users;
-            if (category === 'MLJ / YouTube') return icons.Mic;
-            if (category === 'Content & Campaigns') return icons.FileText;
-            if (category === 'Bottom of Funnel') return icons.Target;
-            return icons.FileText;
-        }
+            // --- CONFIGURATION & CONSTANTS ---
 
-        // --- Main Render Function ---
-        function renderTimeline() {
-            const appRoot = document.getElementById('app-root');
+            // The URL of the CSV file hosted on GitHub.
+            const CSV_URL = "https://raw.githubusercontent.com/aurischibli/seesharp-cmo/refs/heads/main/SeeSharp%20-%20timeline.csv";
             
-            const mainHTML = `
-                <div class="container mx-auto px-4 py-12">
-                    <header class="text-center mb-16">
-                        <div class="inline-block bg-white p-4 rounded-full shadow-lg">
-                            ${icons.Flag}
+            // The row where data parsing begins (0-indexed). Assumes clean file with headers on the first line.
+            const CSV_START_ROW = 0;
+
+            // Pre-defined SVG icons for different deliverables.
+            const DELIVERABLE_ICONS = {
+                'Project Setup': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-slate-500"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>`,
+                'User Management': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-slate-500"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`,
+                'Reporting Module': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-slate-500"><path d="M2.5 2v6h6V2h-6zM2.5 16v6h6v-6h-6zM15.5 2v6h6V2h-6zM15.5 16v6h6v-6h-6zM12 7.5V12h4.5M12 12v4.5H7.5"/></svg>`, // Using a different icon for Reporting
+                'Deployment': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-slate-500"><path d="M21.24 12.24a8.995 8.995 0 1 0-11.48 11.48 9 9 0 0 0 11.48-11.48Z"></path><path d="M12 6v6l4 2"></path><path d="M18 6l2-2"></path><path d="M6 18l-2 2"></path></svg>`,
+                'Default': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-slate-500"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>`
+            };
+
+            // A cache for assignee icons to ensure consistency.
+            const assigneeIconCache = new Map();
+            // A pool of simple SVG shapes to assign to users.
+            const ASSIGNEE_ICON_SHAPES = [
+                `<svg viewBox="0 0 10 10" class="w-3 h-3 fill-current"><circle cx="5" cy="5" r="5"/></svg>`,
+                `<svg viewBox="0 0 10 10" class="w-3 h-3 fill-current"><rect width="10" height="10"/></svg>`,
+                `<svg viewBox="0 0 10 10" class="w-3 h-3 fill-current"><polygon points="5,0 10,10 0,10"/></svg>`,
+                `<svg viewBox="0 0 10 10" class="w-3 h-3 fill-current"><polygon points="5,0 10,5 5,10 0,5"/></svg>`
+            ];
+            // Pool of colors for assignee icons.
+            const ASSIGNEE_COLORS = ['text-blue-500', 'text-green-500', 'text-purple-500', 'text-orange-500', 'text-red-500', 'text-indigo-500'];
+            let nextIconIndex = 0;
+            let nextColorIndex = 0;
+
+            // --- DOM ELEMENT REFERENCES ---
+            const timelineContainer = document.getElementById('timeline');
+            const filtersContainer = document.getElementById('filters');
+            const loadingIndicator = document.getElementById('loading-indicator');
+
+            /**
+             * Fetches text content from the provided URL.
+             * @param {string} url - The URL of the CSV file.
+             * @returns {Promise<string>} The fetched text content.
+             */
+            async function fetchCsvData(url) {
+                try {
+                    const response = await fetch(url, { cache: 'no-store' }); // Use no-store to get the latest file
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return await response.text();
+                } catch (error) {
+                    console.error("Error fetching CSV data:", error);
+                    timelineContainer.innerHTML = `<div class="text-center text-red-500">Failed to load project data from the provided URL. Please check the link and your network connection.</div>`;
+                    return "";
+                }
+            }
+            
+            /**
+             * Parses raw CSV text into an array of objects.
+             * @param {string} csvText - The raw CSV string.
+             * @returns {Array<Object>} An array of task objects.
+             */
+            function parseCsv(csvText) {
+                if (!csvText) return [];
+                const standardizedText = csvText.replace(/\r\n/g, '\n');
+                const lines = standardizedText.split('\n');
+                const dataRows = lines.slice(CSV_START_ROW).filter(line => line.trim() !== '');
+
+                if (dataRows.length < 2) {
+                    console.error("CSV Parsing Error: Not enough data rows found.");
+                    return []; 
+                }
+
+                const headerLine = dataRows[0].trim();
+                const headers = headerLine.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g).map(h => h.replace(/"/g,'').trim());
+                
+                console.log("Parsed Headers from CSV:", headers);
+
+                const records = dataRows.slice(1).map(line => {
+                    const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
+                    const record = {};
+                    headers.forEach((header, index) => {
+                        record[header] = (values[index] || '').replace(/"/g,'').trim();
+                    });
+                    return record;
+                });
+                
+                if (records.length > 0) {
+                    console.log("First Parsed Record:", JSON.parse(JSON.stringify(records[0])));
+                }
+
+                return records;
+            }
+            
+            /**
+             * Groups an array of tasks by their "Deliverable".
+             * @param {Array<Object>} tasks - The flat list of task objects.
+             * @returns {Object} An object where keys are deliverable names and values are arrays of tasks.
+             */
+            function groupTasksByDeliverable(tasks) {
+                return tasks.reduce((acc, task) => {
+                    const deliverable = task.Deliverable || 'Uncategorized';
+                    if (!acc[deliverable]) {
+                        acc[deliverable] = [];
+                    }
+                    if (task.Task) {
+                        acc[deliverable].push(task);
+                    }
+                    return acc;
+                }, {});
+            }
+
+            /**
+             * Gets a consistent icon (shape and color) for a given assignee.
+             * @param {string} assignee - The name of the assignee.
+             * @returns {string} An HTML string for the SVG icon.
+             */
+            function getAssigneeIcon(assignee) {
+                if (!assignee) return '';
+                if (assigneeIconCache.has(assignee)) {
+                    return assigneeIconCache.get(assignee);
+                }
+                const shape = ASSIGNEE_ICON_SHAPES[nextIconIndex % ASSIGNEE_ICON_SHAPES.length];
+                const color = ASSIGNEE_COLORS[nextColorIndex % ASSIGNEE_COLORS.length];
+                const iconHtml = `<span class="${color}">${shape}</span>`;
+                
+                assigneeIconCache.set(assignee, iconHtml);
+                nextIconIndex++;
+                nextColorIndex++;
+                return iconHtml;
+            }
+
+            /**
+             * Renders the entire timeline view from the grouped data.
+             * @param {Object} groupedData - Data grouped by deliverables.
+             */
+            function renderTimeline(groupedData) {
+                loadingIndicator.style.display = 'none';
+                timelineContainer.innerHTML = ''; 
+
+                const timelineBar = document.createElement('div');
+                timelineBar.className = 'absolute left-4 md:left-5 top-2 bottom-0 w-0.5 bg-slate-300';
+                timelineBar.setAttribute('aria-hidden', 'true');
+                timelineContainer.appendChild(timelineBar);
+
+                if (Object.keys(groupedData).length === 0) {
+                     timelineContainer.innerHTML += `<div class="text-center text-slate-500">No tasks found. The CSV file might be empty or formatted incorrectly.</div>`;
+                     return;
+                }
+
+                for (const deliverable in groupedData) {
+                    const tasks = groupedData[deliverable];
+                    if (tasks.length === 0) continue;
+
+                    const deliverableElement = document.createElement('div');
+                    deliverableElement.className = 'mb-10';
+                    
+                    const icon = DELIVERABLE_ICONS[deliverable] || DELIVERABLE_ICONS['Default'];
+                    
+                    deliverableElement.innerHTML = `
+                        <div class="flex items-center mb-4">
+                            <div class="z-10 flex items-center justify-center w-8 h-8 md:w-10 md:h-10 bg-white rounded-full ring-4 ring-slate-100">
+                                ${icon}
+                            </div>
+                            <h2 class="ml-4 text-xl md:text-2xl font-bold text-slate-800">${deliverable}</h2>
                         </div>
-                        <h1 class="text-5xl font-bold text-gray-800 mt-4">
-                            SeeSharp Marketing Timeline
-                        </h1>
-                        <p class="text-xl text-gray-500 mt-3">
-                            Q2-Q3 2025 Project Plan & Task List
-                        </p>
-                    </header>
+                    `;
+                    
+                    const tasksContainer = document.createElement('div');
+                    tasksContainer.className = 'ml-4 md:ml-5 pl-8';
+                    
+                    tasks.forEach(task => {
+                        const taskElement = document.createElement('div');
+                        taskElement.dataset.assignee = task.Assignee; 
+                        taskElement.className = 'task-card group relative mb-4';
 
-                    <div class="relative">
-                        <!-- Central timeline connector -->
-                        <div class="absolute left-1/2 -ml-px w-0.5 h-full bg-gray-300 hidden md:block"></div>
+                        const assigneeIcon = getAssigneeIcon(task.Assignee);
+                        
+                        // **FIXED**: Robustly check for 'End Date' or 'Due Date' and provide 'N/A' fallback.
+                        const dueDate = task['End Date'] || task['Due Date'] || 'N/A';
 
-                        ${Object.entries(timelineData).map(([monthKey, monthData], index) => `
-                            <div class="relative mb-16 md:mb-24">
-                                <div class="flex flex-col md:flex-row items-center">
-                                    <!-- Month Title Card -->
-                                    <div class="relative w-full md:w-1/2 ${index % 2 === 0 ? 'md:pr-8 md:text-right' : 'md:pl-8 md:text-left md:order-2'}">
-                                       <div class="md:inline-block md:w-auto w-full mb-8 md:mb-0">
-                                         <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
-                                            <div class="flex items-center justify-center md:justify-start mb-2">
-                                                 <span class="text-gray-400 mr-3">${icons.Calendar}</span>
-                                                 <h2 class="text-3xl font-bold text-sky-600">${monthData.month}</h2>
-                                            </div>
-                                            <p class="text-lg text-gray-500">${monthData.theme}</p>
-                                         </div>
-                                       </div>
+                        taskElement.innerHTML = `
+                            <div class="p-4 bg-white rounded-lg shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                                <h3 class="font-semibold text-md text-slate-900 mb-2">${task.Task}</h3>
+                                <div class="flex justify-between items-center text-sm">
+                                    <div class="flex items-center text-slate-500">
+                                        ${assigneeIcon}
+                                        <span class="ml-2">${task.Assignee || 'N/A'}</span>
                                     </div>
-
-                                    <!-- Vertical line for mobile -->
-                                    <div class="md:hidden w-px h-8 bg-gray-300 mx-auto"></div>
-
-                                    <!-- Tasks Section -->
-                                    <div class="w-full md:w-1/2 ${index % 2 === 0 ? 'md:pl-8' : 'md:pr-8 md:order-1'}">
-                                      <div class="space-y-6">
-                                        ${monthData.tasks.map((category, catIndex) => `
-                                          <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-md p-6 border border-gray-200/80">
-                                              <div class="flex items-center mb-4">
-                                                  <span class="${category.color} mr-3">${getIcon(category.category)}</span>
-                                                  <h3 class="text-xl font-semibold text-gray-800">${category.category}</h3>
-                                              </div>
-                                              <ul class="divide-y divide-gray-200/70">
-                                                ${category.items.map((item, itemIndex) => `
-                                                    <li class="flex items-center space-x-3 py-2 cursor-pointer group" 
-                                                        data-month="${monthKey}" 
-                                                        data-cat-index="${catIndex}" 
-                                                        data-item-index="${itemIndex}">
-                                                        <div class="text-gray-400 group-hover:text-sky-500 transition-colors">
-                                                            ${item.completed ? icons.CheckSquare : icons.Square}
-                                                        </div>
-                                                        <span class="flex-1 ${item.completed ? 'line-through text-gray-400' : 'text-gray-700'}">
-                                                            ${item.text}
-                                                        </span>
-                                                    </li>
-                                                `).join('')}
-                                              </ul>
-                                          </div>
-                                        `).join('')}
-                                      </div>
+                                    <div class="text-slate-600 font-medium">
+                                        Due: ${dueDate}
                                     </div>
                                 </div>
-                               <!-- Timeline dot -->
-                               <div class="hidden md:flex absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 bg-white rounded-full border-4 border-sky-500 items-center justify-center">
-                                    <span class="text-sky-500">${icons.ChevronsRight}</span>
-                               </div>
                             </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-            appRoot.innerHTML = mainHTML;
-        }
+                            <div class="tooltip absolute z-20 left-full top-0 ml-4 w-64 p-3 bg-slate-800 text-white text-sm rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                                <h4 class="font-bold border-b border-slate-600 pb-1 mb-2">More Details</h4>
+                                <p><strong class="font-medium text-slate-300">Status:</strong> ${task.Status || 'N/A'}</p>
+                                <p><strong class="font-medium text-slate-300">Start Date:</strong> ${task['Start Date'] || 'N/A'}</p>
+                                <p class="mt-2 pt-2 border-t border-slate-600"><strong class="font-medium text-slate-300">Notes:</strong> ${task.Notes || 'None'}</p>
+                            </div>
+                        `;
+                        tasksContainer.appendChild(taskElement);
+                    });
+                    
+                    deliverableElement.appendChild(tasksContainer);
+                    timelineContainer.appendChild(deliverableElement);
+                }
+            }
+            
+            /**
+             * Generates and renders the filter buttons based on unique assignees.
+             * @param {Array<Object>} tasks - The flat list of task objects.
+             */
+            function renderFilters(tasks) {
+                const assignees = [...new Set(tasks.map(task => task.Assignee).filter(Boolean))];
+                filtersContainer.innerHTML = ''; 
+                
+                const allButton = document.createElement('button');
+                allButton.textContent = 'All';
+                allButton.dataset.filter = 'All';
+                allButton.className = 'filter-btn px-4 py-2 text-sm font-medium rounded-md transition-colors bg-blue-500 text-white'; 
+                filtersContainer.appendChild(allButton);
 
-        // --- Event Listener for Interactivity ---
-        document.addEventListener('click', function(e) {
-            const taskItem = e.target.closest('li[data-month]');
-            if (!taskItem) return;
+                assignees.forEach(assignee => {
+                    const button = document.createElement('button');
+                    button.textContent = assignee;
+                    button.dataset.filter = assignee;
+                    button.className = 'filter-btn px-4 py-2 text-sm font-medium rounded-md transition-colors bg-white text-slate-700 hover:bg-slate-200';
+                    filtersContainer.appendChild(button);
+                });
+                
+                filtersContainer.addEventListener('click', handleFilterClick);
+            }
 
-            // Retrieve data attributes to identify the clicked task
-            const monthKey = taskItem.dataset.month;
-            const catIndex = parseInt(taskItem.dataset.catIndex);
-            const itemIndex = parseInt(taskItem.dataset.itemIndex);
+            /**
+             * Handles clicks on the filter buttons.
+             * @param {Event} event - The click event object.
+             */
+            function handleFilterClick(event) {
+                const target = event.target.closest('.filter-btn');
+                if (!target) return;
+                
+                const filter = target.dataset.filter;
 
-            // Toggle the 'completed' state in our data object
-            const task = timelineData[monthKey].tasks[catIndex].items[itemIndex];
-            task.completed = !task.completed;
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('bg-blue-500', 'text-white');
+                    btn.classList.add('bg-white', 'text-slate-700', 'hover:bg-slate-200');
+                });
+                target.classList.add('bg-blue-500', 'text-white');
+                target.classList.remove('bg-white', 'text-slate-700', 'hover:bg-slate-200');
+                
+                // **FIXED**: Change display style to 'none' to hide cards completely instead of fading.
+                document.querySelectorAll('.task-card').forEach(card => {
+                    if (filter === 'All' || card.dataset.assignee === filter) {
+                        card.style.display = ''; // Revert to default display style
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
 
-            // Re-render the entire timeline to reflect the change
-            // This is a simple approach for a self-contained file.
-            renderTimeline();
+            /**
+             * Main function to initialize the application.
+             */
+            async function initialize() {
+                const csvText = await fetchCsvData(CSV_URL);
+                if (csvText) {
+                    const tasks = parseCsv(csvText);
+                    const groupedTasks = groupTasksByDeliverable(tasks);
+                    
+                    renderTimeline(groupedTasks);
+                    renderFilters(tasks);
+                }
+            }
+
+            // --- START THE APPLICATION ---
+            initialize();
         });
-
-
-        // --- Initial Render on Page Load ---
-        document.addEventListener('DOMContentLoaded', renderTimeline);
-
     </script>
 </body>
 </html>
