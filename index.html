@@ -13,11 +13,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Marked.js for Markdown Parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
     <style>
-        /* Custom styles for a clean look */
-        body {
-            font-family: 'Inter', sans-serif;
-        }
+        body { font-family: 'Inter', sans-serif; }
         .task-card-details {
             max-height: 0;
             overflow: hidden;
@@ -30,28 +30,40 @@
             padding-top: 1rem;
             padding-bottom: 1rem;
         }
+        /* Styles for parsed markdown content */
+        .markdown-content p { margin-top: 0.25rem; margin-bottom: 0.25rem; }
+        .markdown-content a { color: #2563EB; /* blue-600 */ text-decoration: underline; }
+        .markdown-content strong { font-weight: 700; }
+        .markdown-content em { font-style: italic; }
+        .markdown-content ul { list-style-type: disc; padding-left: 1.5rem; margin: 0.5rem 0; }
+        .markdown-content ol { list-style-type: decimal; padding-left: 1.5rem; margin: 0.5rem 0; }
+        .markdown-content li { margin-bottom: 0.25rem; }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800">
 
     <div class="container mx-auto p-4 md:p-8">
         
-        <!-- Header -->
-        <header class="text-center mb-8">
+        <header class="text-center mb-4">
             <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Project Timeline</h1>
             <p class="text-slate-600 mt-2">An interactive overview of project deliverables and tasks.</p>
         </header>
 
-        <!-- Assignee Filters -->
-        <div id="filters" class="flex flex-wrap justify-center gap-2 mb-10 p-2 bg-slate-200/60 rounded-lg">
-            <!-- Filter buttons will be dynamically inserted here -->
+        <!-- Notification Box for Cell Data -->
+        <div id="notification-box" class="max-w-3xl mx-auto mb-8"></div>
+        
+        <!-- Filters Container -->
+        <div class="max-w-4xl mx-auto mb-10 p-4 bg-slate-200/60 rounded-lg space-y-4">
+            <div id="status-filters" class="flex flex-wrap justify-center gap-2">
+                <!-- Status filter buttons will be dynamically inserted here -->
+            </div>
+            <div id="assignee-filters" class="flex flex-wrap justify-center gap-2">
+                 <!-- Assignee filter buttons will be dynamically inserted here -->
+            </div>
         </div>
 
-        <!-- Main Timeline Container -->
         <main id="timeline" class="relative max-w-3xl mx-auto">
-             <!-- A vertical line for the timeline aesthetic -->
             <div class="absolute left-4 md:left-5 top-2 bottom-0 w-0.5 bg-slate-300" aria-hidden="true"></div>
-            <!-- Timeline content will be dynamically inserted here -->
             <div id="loading-indicator" class="text-center p-8">
                 <p class="text-slate-600">Loading project data...</p>
             </div>
@@ -63,10 +75,13 @@
         document.addEventListener('DOMContentLoaded', () => {
 
             // --- CONFIGURATION & CONSTANTS ---
-
             const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSWIWb8Mt4gguZyQrHLyBm2f33PRhE4AdyK2Ir4eU9ovEWihgcn-r1ndvnrk8ukwygxm8XADHHhW7E1/pub?gid=863418559&single=true&output=csv";
-            const CSV_START_ROW = 0;
-
+            const API_KEY = 'AIzaSyAhVz1IzVvpOLSEwfa1M7mdwaKHXT1hgPM';
+            const SPREADSHEET_ID = '1r_lpgthXEEBeLBGte6-i6M6xtjoQ0qkmhtOuOlviey0';
+            const SHEET_NAME_CELL = 'Generator';
+            const CELL_REFERENCE = 'B16';
+            const CELL_DATA_RANGE = `${SHEET_NAME_CELL}!${CELL_REFERENCE}`;
+            
             const DELIVERABLE_ICONS = {
                 'Project Setup': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-slate-500"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>`,
                 'User Management': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-slate-500"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>`,
@@ -75,29 +90,51 @@
                 'Default': `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-slate-500"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>`
             };
             
-            // --- NEW: Status color mapping ---
             const STATUS_COLORS = {
-                'Not Started': 'bg-slate-200 text-slate-700',
-                'In Progress': 'bg-yellow-200 text-yellow-800',
-                'Blocked': 'bg-red-200 text-red-800',
-                'Internal Review': 'bg-blue-200 text-blue-800',
-                'Client Review': 'bg-orange-200 text-orange-800',
-                'Completed': 'bg-green-200 text-green-800',
+                'Not Started': 'bg-slate-200 text-slate-700', 'In Progress': 'bg-yellow-200 text-yellow-800',
+                'Blocked': 'bg-red-200 text-red-800', 'Internal Review': 'bg-blue-200 text-blue-800',
+                'Client Review': 'bg-orange-200 text-orange-800', 'Completed': 'bg-green-200 text-green-800',
                 'Default': 'bg-gray-200 text-gray-700'
             };
 
             const assigneeIconCache = new Map();
-            const ASSIGNEE_ICON_SHAPES = [
-                `<svg viewBox="0 0 10 10" class="w-3 h-3 fill-current"><circle cx="5" cy="5" r="5"/></svg>`,
-                `<svg viewBox="0 0 10 10" class="w-3 h-3 fill-current"><rect width="10" height="10"/></svg>`,
-                `<svg viewBox="0 0 10 10" class="w-3 h-3 fill-current"><polygon points="5,0 10,10 0,10"/></svg>`,
-                `<svg viewBox="0 0 10 10" class="w-3 h-3 fill-current"><polygon points="5,0 10,5 5,10 0,5"/></svg>`
-            ];
+            const ASSIGNEE_ICON_SHAPES = [`<svg viewBox="0 0 10 10" class="w-3 h-3 fill-current"><circle cx="5" cy="5" r="5"/></svg>`, `<svg viewBox="0 0 10 10" class="w-3 h-3 fill-current"><rect width="10" height="10"/></svg>`, `<svg viewBox="0 0 10 10" class="w-3 h-3 fill-current"><polygon points="5,0 10,10 0,10"/></svg>`, `<svg viewBox="0 0 10 10" class="w-3 h-3 fill-current"><polygon points="5,0 10,5 5,10 0,5"/></svg>`];
             let nextIconIndex = 0;
             
+            // --- DOM ELEMENTS & STATE ---
+            const notificationBox = document.getElementById('notification-box');
             const timelineContainer = document.getElementById('timeline');
-            const filtersContainer = document.getElementById('filters');
+            const statusFiltersContainer = document.getElementById('status-filters');
+            const assigneeFiltersContainer = document.getElementById('assignee-filters');
             const loadingIndicator = document.getElementById('loading-indicator');
+            let activeAssigneeFilter = 'All';
+            let activeStatusFilter = 'All';
+
+            async function fetchSheetCellData() {
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${CELL_DATA_RANGE}?key=${API_KEY}`;
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error(`Google Sheets API error: ${response.status}`);
+                    const data = await response.json();
+                    const cellValue = data.values && data.values[0] && data.values[0][0] ? data.values[0][0].trim() : '';
+                    
+                    if (cellValue) {
+                        const infoIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-4 text-blue-600 flex-shrink-0"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><line x1="12" x2="12" y1="16" y2="12"></line><line x1="12" x2="12.01" y1="8" y2="8"></line></svg>`;
+                        const markdownContent = marked.parse(cellValue, { breaks: true });
+                        
+                        notificationBox.innerHTML = `
+                            <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-800 p-4 rounded-md shadow flex items-start" role="alert">
+                                ${infoIcon}
+                                <div class="markdown-content">${markdownContent}</div>
+                            </div>`;
+                    } else {
+                        notificationBox.innerHTML = ''; // Ensure box is empty if cell is empty
+                    }
+                } catch (error) {
+                    console.error("Error fetching cell data:", error);
+                    notificationBox.innerHTML = ''; // Don't show an error box, just hide it
+                }
+            }
 
             async function fetchCsvData(url) {
                 try {
@@ -106,6 +143,7 @@
                     return await response.text();
                 } catch (error) {
                     console.error("Error fetching CSV data:", error);
+                    loadingIndicator.style.display = 'none';
                     timelineContainer.innerHTML = `<div class="text-center text-red-500">Failed to load project data.</div>`;
                     return "";
                 }
@@ -114,11 +152,10 @@
             function parseCsv(csvText) {
                 if (!csvText) return [];
                 const lines = csvText.replace(/\r\n/g, '\n').split('\n');
-                const dataRows = lines.slice(CSV_START_ROW).filter(line => line.trim() !== '');
-                if (dataRows.length < 2) return [];
-
-                const headers = dataRows[0].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g).map(h => h.replace(/"/g,'').trim());
-                return dataRows.slice(1).map(line => {
+                const dataRows = lines.slice(1).filter(line => line.trim() !== '');
+                if (dataRows.length === 0) return [];
+                const headers = lines[0].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g).map(h => h.replace(/"/g,'').trim());
+                return dataRows.map(line => {
                     const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
                     return headers.reduce((record, header, index) => {
                         record[header] = (values[index] || '').replace(/"/g,'').trim();
@@ -127,129 +164,68 @@
                 });
             }
             
-            function groupTasksByDeliverable(tasks) {
-                return tasks.reduce((acc, task) => {
-                    const deliverable = task.Deliverable || 'Uncategorized';
-                    if (!acc[deliverable]) acc[deliverable] = [];
-                    if (task.Task) acc[deliverable].push(task);
-                    return acc;
-                }, {});
-            }
-
-            function getAssigneeIcon(assignee) {
-                if (!assignee) return '';
-                if (assigneeIconCache.has(assignee)) return assigneeIconCache.get(assignee);
-                
-                // Assign shape without color
-                const shape = ASSIGNEE_ICON_SHAPES[nextIconIndex % ASSIGNEE_ICON_SHAPES.length];
-                const iconHtml = `<span class="text-slate-500">${shape}</span>`;
-                
-                assigneeIconCache.set(assignee, iconHtml);
-                nextIconIndex++;
-                return iconHtml;
-            }
+            function groupTasksByDeliverable(tasks) { return tasks.reduce((acc, task) => { const d = task.Deliverable||'Uncategorized'; if(!acc[d])acc[d]=[]; if(task.Task)acc[d].push(task); return acc; }, {}); }
+            function getAssigneeIcon(assignee) { if (!assignee) return ''; if (assigneeIconCache.has(assignee)) return assigneeIconCache.get(assignee); const s = ASSIGNEE_ICON_SHAPES[nextIconIndex++ % ASSIGNEE_ICON_SHAPES.length]; const i = `<span class="text-slate-500">${s}</span>`; assigneeIconCache.set(assignee, i); return i; }
 
             function renderTimeline(groupedData) {
-                loadingIndicator.style.display = 'none';
-                const timelineBar = timelineContainer.querySelector('.bg-slate-300');
-                if (timelineBar) timelineBar.style.display = 'block';
-
-                // Clear previous content except the bar
-                Array.from(timelineContainer.children).forEach(child => {
-                    if (!child.classList.contains('bg-slate-300')) {
-                        timelineContainer.removeChild(child);
-                    }
-                });
-
-                if (Object.keys(groupedData).length === 0) {
-                     timelineContainer.innerHTML += `<div class="text-center text-slate-500">No tasks found.</div>`;
-                     return;
-                }
+                timelineContainer.querySelector('.bg-slate-300').style.display = 'block';
+                Array.from(timelineContainer.children).forEach(c => { if (!c.classList.contains('bg-slate-300')) timelineContainer.removeChild(c); });
+                if (Object.keys(groupedData).length === 0) { timelineContainer.innerHTML += `<div class="text-center text-slate-500">No tasks found.</div>`; return; }
 
                 for (const deliverable in groupedData) {
                     const tasks = groupedData[deliverable];
                     if (tasks.length === 0) continue;
-
                     const deliverableElement = document.createElement('div');
                     deliverableElement.className = 'mb-10';
                     const icon = DELIVERABLE_ICONS[deliverable] || DELIVERABLE_ICONS['Default'];
-                    deliverableElement.innerHTML = `
-                        <div class="flex items-center mb-4">
-                            <div class="z-10 flex items-center justify-center w-8 h-8 md:w-10 md:h-10 bg-white rounded-full ring-4 ring-slate-100">${icon}</div>
-                            <h2 class="ml-4 text-xl md:text-2xl font-bold text-slate-800">${deliverable}</h2>
-                        </div>
-                    `;
-                    
+                    deliverableElement.innerHTML = `<div class="flex items-center mb-4"><div class="z-10 flex items-center justify-center w-8 h-8 md:w-10 md:h-10 bg-white rounded-full ring-4 ring-slate-100">${icon}</div><h2 class="ml-4 text-xl md:text-2xl font-bold text-slate-800">${deliverable}</h2></div>`;
                     const tasksContainer = document.createElement('div');
                     tasksContainer.className = 'ml-4 md:ml-5 pl-8';
-                    
                     tasks.forEach(task => {
                         const taskElement = document.createElement('div');
                         taskElement.className = 'task-card mb-2 bg-white rounded-lg shadow-md';
-                        taskElement.dataset.assignee = task.Assignee; 
-
-                        const assigneeIcon = getAssigneeIcon(task.Assignee);
-                        const dueDate = task['End Date'] || task['Due Date'] || 'N/A';
                         const status = task.Status || 'N/A';
+                        taskElement.dataset.assignee = task.Assignee || 'N/A';
+                        taskElement.dataset.status = status;
                         const statusColor = STATUS_COLORS[status] || STATUS_COLORS['Default'];
-
-                        // Create details for sub-card
-                        const notes = task.Notes || 'None';
-                        const linkRef = task['Link Ref'];
-                        let linkHtml = '';
-                        if (linkRef) {
-                            try {
-                                new URL(linkRef);
-                                linkHtml = `<p class="mt-2"><strong class="font-medium text-slate-500">Reference:</strong> <a href="${linkRef}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Open Link</a></p>`;
-                            } catch (_) {
-                                linkHtml = `<p class="mt-2"><strong class="font-medium text-slate-500">Reference:</strong> ${linkRef}</p>`;
-                            }
-                        }
-
-                        taskElement.innerHTML = `
-                            <div class="task-card-main p-4 hover:bg-slate-50 transition-colors duration-300 cursor-pointer">
-                                <div class="flex justify-between items-start">
-                                    <h3 class="font-semibold text-md text-slate-900 mb-2 pr-4">${task.Task}</h3>
-                                    <span class="text-xs font-semibold px-2 py-1 rounded-full ${statusColor} whitespace-nowrap">${status}</span>
-                                </div>
-                                <div class="flex justify-between items-center text-sm">
-                                    <div class="flex items-center text-slate-600">
-                                        ${assigneeIcon}
-                                        <span class="ml-2">${task.Assignee || 'N/A'}</span>
-                                    </div>
-                                    <div class="text-slate-500 font-medium">Due: ${dueDate}</div>
-                                </div>
-                            </div>
-                            <div class="task-card-details px-4 border-t border-slate-200">
-                                <p><strong class="font-medium text-slate-500">Start Date:</strong> ${task['Start Date'] || 'N/A'}</p>
-                                <p class="mt-2"><strong class="font-medium text-slate-500">Notes:</strong> ${notes}</p>
-                                ${linkHtml}
-                            </div>
-                        `;
+                        let linkHtml = ''; if (task['Link Ref']) { try { new URL(task['Link Ref']); linkHtml = `<p class="mt-2"><strong class="font-medium text-slate-500">Reference:</strong> <a href="${task['Link Ref']}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Open Link</a></p>`; } catch (_) { linkHtml = `<p class="mt-2"><strong class="font-medium text-slate-500">Reference:</strong> ${task['Link Ref']}</p>`; } }
+                        taskElement.innerHTML = `<div class="task-card-main p-4 hover:bg-slate-50 transition-colors duration-300 cursor-pointer"><div class="flex justify-between items-start"><h3 class="font-semibold text-md text-slate-900 mb-2 pr-4">${task.Task}</h3><span class="text-xs font-semibold px-2 py-1 rounded-full ${statusColor} whitespace-nowrap">${status}</span></div><div class="flex justify-between items-center text-sm"><div class="flex items-center text-slate-600">${getAssigneeIcon(task.Assignee)}<span class="ml-2">${task.Assignee || 'N/A'}</span></div><div class="text-slate-500 font-medium">Due: ${task['End Date'] || task['Due Date'] || 'N/A'}</div></div></div><div class="task-card-details px-4 border-t border-slate-200"><p><strong class="font-medium text-slate-500">Start Date:</strong> ${task['Start Date'] || 'N/A'}</p><p class="mt-2"><strong class="font-medium text-slate-500">Notes:</strong> ${task.Notes || 'None'}</p>${linkHtml}</div>`;
                         tasksContainer.appendChild(taskElement);
                     });
-                    
                     deliverableElement.appendChild(tasksContainer);
                     timelineContainer.appendChild(deliverableElement);
                 }
             }
             
             function renderFilters(tasks) {
-                const assignees = [...new Set(tasks.map(task => task.Assignee).filter(Boolean))];
-                filtersContainer.innerHTML = ''; 
+                const assignees = [...new Set(tasks.map(t => t.Assignee).filter(Boolean))].sort();
+                const statuses = [...new Set(tasks.map(t => t.Status).filter(Boolean))].sort();
                 
-                const allButton = document.createElement('button');
-                allButton.textContent = 'All';
-                allButton.dataset.filter = 'All';
-                allButton.className = 'filter-btn px-4 py-2 text-sm font-medium rounded-md transition-colors bg-blue-500 text-white'; 
-                filtersContainer.appendChild(allButton);
+                const createButton = (text, type, container, isActive = false) => {
+                    const btn = document.createElement('button');
+                    btn.textContent = text;
+                    btn.dataset.filter = text;
+                    btn.dataset.filterType = type;
+                    const activeClasses = 'bg-blue-500 text-white';
+                    const inactiveClasses = 'bg-white text-slate-700 hover:bg-slate-200';
+                    btn.className = `filter-btn px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${isActive ? activeClasses : inactiveClasses}`;
+                    container.appendChild(btn);
+                };
 
-                assignees.forEach(assignee => {
-                    const button = document.createElement('button');
-                    button.textContent = assignee;
-                    button.dataset.filter = assignee;
-                    button.className = 'filter-btn px-4 py-2 text-sm font-medium rounded-md transition-colors bg-white text-slate-700 hover:bg-slate-200';
-                    filtersContainer.appendChild(button);
+                statusFiltersContainer.innerHTML = '<span class="font-medium text-slate-600 self-center">Status:</span>';
+                createButton('All', 'status', statusFiltersContainer, true);
+                statuses.forEach(s => createButton(s, 'status', statusFiltersContainer));
+
+                assigneeFiltersContainer.innerHTML = '<span class="font-medium text-slate-600 self-center">Assignee:</span>';
+                createButton('All', 'assignee', assigneeFiltersContainer, true);
+                assignees.forEach(a => createButton(a, 'assignee', assigneeFiltersContainer));
+            }
+
+            function applyFilters() {
+                document.querySelectorAll('.task-card').forEach(card => {
+                    const matchesAssignee = activeAssigneeFilter === 'All' || card.dataset.assignee === activeAssigneeFilter;
+                    const matchesStatus = activeStatusFilter === 'All' || card.dataset.status === activeStatusFilter;
+                    card.style.display = (matchesAssignee && matchesStatus) ? 'block' : 'none';
                 });
             }
 
@@ -257,54 +233,48 @@
                 const target = event.target.closest('.filter-btn');
                 if (!target) return;
                 
-                const filter = target.dataset.filter;
+                const filterValue = target.dataset.filter;
+                const filterType = target.dataset.filterType;
 
-                document.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.classList.remove('bg-blue-500', 'text-white');
-                    btn.classList.add('bg-white', 'text-slate-700', 'hover:bg-slate-200');
-                });
-                target.classList.add('bg-blue-500', 'text-white');
-                target.classList.remove('bg-white', 'text-slate-700', 'hover:bg-slate-200');
+                const parentContainer = filterType === 'status' ? statusFiltersContainer : assigneeFiltersContainer;
                 
-                document.querySelectorAll('.task-card').forEach(card => {
-                    if (filter === 'All' || card.dataset.assignee === filter) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
+                parentContainer.querySelectorAll('.filter-btn').forEach(btn => {
+                    const isActive = btn.dataset.filter === filterValue;
+                    btn.classList.toggle('bg-blue-500', isActive);
+                    btn.classList.toggle('text-white', isActive);
+                    btn.classList.toggle('bg-white', !isActive);
+                    btn.classList.toggle('text-slate-700', !isActive);
                 });
+
+                if (filterType === 'status') activeStatusFilter = filterValue;
+                else if (filterType === 'assignee') activeAssigneeFilter = filterValue;
+                
+                applyFilters();
             }
             
             function handleTaskClick(event) {
                 const mainCard = event.target.closest('.task-card-main');
                 if (!mainCard) return;
-
                 const detailsCard = mainCard.nextElementSibling;
                 if (!detailsCard) return;
-
-                // Close all other cards first
-                document.querySelectorAll('.task-card-details.expanded').forEach(openCard => {
-                    if (openCard !== detailsCard) {
-                        openCard.classList.remove('expanded');
-                    }
-                });
-                
-                // Toggle the clicked card
-                detailsCard.classList.toggle('expanded');
+                const isExpanded = detailsCard.classList.contains('expanded');
+                document.querySelectorAll('.task-card-details.expanded').forEach(openCard => openCard.classList.remove('expanded'));
+                if (!isExpanded) detailsCard.classList.add('expanded');
             }
 
             async function initialize() {
+                loadingIndicator.style.display = 'block';
+                await fetchSheetCellData();
                 const csvText = await fetchCsvData(CSV_URL);
                 if (csvText) {
                     const tasks = parseCsv(csvText);
                     const groupedTasks = groupTasksByDeliverable(tasks);
-                    
                     renderTimeline(groupedTasks);
                     renderFilters(tasks);
-                    
-                    // Add event listeners after rendering
-                    filtersContainer.addEventListener('click', handleFilterClick);
+                    loadingIndicator.style.display = 'none';
                     timelineContainer.addEventListener('click', handleTaskClick);
+                    statusFiltersContainer.addEventListener('click', handleFilterClick);
+                    assigneeFiltersContainer.addEventListener('click', handleFilterClick);
                 }
             }
 
